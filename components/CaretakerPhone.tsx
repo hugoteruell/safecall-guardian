@@ -28,9 +28,15 @@ export default function CaretakerPhone({
 
   return (
     <div className="absolute inset-0 flex flex-col text-white overflow-hidden">
-      {/* Wallpaper — soft sunrise feel */}
-      <div className="absolute inset-0 bg-gradient-to-br from-rose-400 via-orange-300 to-amber-200" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/40" />
+      {/* Wallpaper — family portrait (grandma with grandkids) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/wallpaper-family.jpg')" }}
+      />
+      {/* Slight dim so the white text on lock screen stays legible */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/45" />
+      {/* Fallback color in case the image fails to load */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-rose-400 via-orange-300 to-amber-200" />
 
       {/* Foreground */}
       <div className="relative flex-1 flex flex-col">
