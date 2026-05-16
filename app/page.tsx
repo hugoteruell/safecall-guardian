@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import PhoneDemo from '@/components/PhoneDemo';
 import ScamIntelSection from '@/components/ScamIntelSection';
 import Reveal from '@/components/Reveal';
@@ -9,16 +9,17 @@ export default function Home() {
     <main className="min-h-screen bg-cream">
       {/* Nav */}
       <nav className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-        <Link href="/" className="flex items-baseline gap-2">
-          <span
-            className="font-display text-2xl leading-none bg-gradient-to-r from-[#5de0e6] to-[#004aad] bg-clip-text text-transparent"
-          >
-            SafeCall
-          </span>
-          <span className="text-[10px] text-ink-muted uppercase tracking-[0.18em] font-semibold">
-            Guardian
-          </span>
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-ink flex items-center justify-center shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-cream" strokeWidth={2} />
+          </div>
+          <div>
+            <span className="font-display text-lg text-ink leading-none">SafeCall</span>
+            <span className="block text-[10px] text-ink-muted uppercase tracking-[0.18em] font-semibold mt-0.5">
+              Guardian
+            </span>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-cream-soft border border-cream-deep text-ink-soft text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5" strokeWidth={1.8} />

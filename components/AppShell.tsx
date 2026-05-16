@@ -6,6 +6,7 @@ import {
   Bell,
   Users,
   Settings,
+  ShieldCheck,
   LogOut,
   HelpCircle,
   ChevronDown,
@@ -30,15 +31,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden lg:flex w-64 shrink-0 bg-cream-soft border-r border-cream-deep flex-col">
         {/* Brand */}
-        <div className="px-5 py-5 border-b border-cream-deep">
-          <Link href="/" className="flex items-baseline gap-2">
-            <span className="font-display text-2xl leading-none bg-gradient-to-r from-[#5de0e6] to-[#004aad] bg-clip-text text-transparent">
-              SafeCall
-            </span>
-            <span className="text-[10px] text-ink-muted uppercase tracking-[0.18em] font-semibold">
+        <div className="px-5 py-5 flex items-center gap-2.5 border-b border-cream-deep">
+          <div className="w-9 h-9 rounded-xl bg-ink flex items-center justify-center shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-cream" />
+          </div>
+          <div>
+            <div className="font-display text-lg text-ink leading-none">SafeCall</div>
+            <div className="text-[10px] text-ink-muted uppercase tracking-[0.18em] font-semibold mt-0.5">
               Guardian
-            </span>
-          </Link>
+            </div>
+          </div>
         </div>
 
         {/* Protected user */}
@@ -98,14 +100,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-cream/85 backdrop-blur border-b border-cream-deep px-5 lg:px-8 h-16 flex items-center justify-between sticky top-0 z-30">
-          <Link href="/" className="lg:hidden flex items-baseline gap-1.5">
-            <span className="font-display text-xl leading-none bg-gradient-to-r from-[#5de0e6] to-[#004aad] bg-clip-text text-transparent">
-              SafeCall
-            </span>
-            <span className="text-[9px] text-ink-muted uppercase tracking-[0.18em] font-semibold">
-              Guardian
-            </span>
-          </Link>
+          <div className="lg:hidden flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-cream" />
+            </div>
+            <span className="font-display text-base text-ink">SafeCall</span>
+          </div>
 
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage-soft border border-sage/30">
             <span className="relative flex w-2 h-2">
