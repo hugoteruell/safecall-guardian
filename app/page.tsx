@@ -1,5 +1,6 @@
 import { ShieldCheck, Sparkles } from 'lucide-react';
 import PhoneDemo from '@/components/PhoneDemo';
+import ScamIntelSection from '@/components/ScamIntelSection';
 
 export default function Home() {
   return (
@@ -18,50 +19,43 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero theater */}
-      <section className="max-w-7xl mx-auto px-6 pt-4 pb-20">
+      {/* Problem first — live (cached) scam map */}
+      <ScamIntelSection />
+
+      {/* Bridge into the solution */}
+      <div className="border-t border-slate-200 bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-7xl mx-auto px-6 pt-16 pb-4 text-center">
+          <div className="text-sm font-bold uppercase tracking-[0.25em] text-slate-500">
+            So we built something
+          </div>
+          <div className="mx-auto mt-3 w-12 h-0.5 bg-slate-300 rounded-full" />
+        </div>
+      </div>
+
+      {/* Solution — phone theater */}
+      <section className="max-w-7xl mx-auto px-6 pt-6 pb-20">
         <PhoneDemo />
       </section>
 
-      {/* Sponsor strip */}
-      <section className="border-t border-slate-200 bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-blue-700 mb-2">
-              Bright Data
-            </div>
-            <div className="text-base font-semibold text-slate-900 mb-1">
-              Live scam intelligence
-            </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Scrapes scam-report registries and bank security pages the moment a
-              message lands.
-            </p>
-          </div>
-          <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-emerald-700 mb-2">
-              Butterbase
-            </div>
-            <div className="text-base font-semibold text-slate-900 mb-1">
-              Family memory
-            </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Knows who Peter is, what number he uses, how he writes. Catches
-              impersonation no regex can.
-            </p>
-          </div>
-          <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-purple-700 mb-2">
-              Zeabur
-            </div>
-            <div className="text-base font-semibold text-slate-900 mb-1">
-              Always-on deploy
-            </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Protection runs in the cloud — no app to install for the parent who
-              just wants their phone to work.
-            </p>
-          </div>
+      {/* Sponsor mini strip */}
+      <section className="border-t border-slate-200 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-slate-500">
+          <span>
+            Threat intel by <span className="font-semibold text-slate-700">Bright Data</span>
+          </span>
+          <span>·</span>
+          <span>
+            Family memory by{' '}
+            <span className="font-semibold text-slate-700">Butterbase</span>
+          </span>
+          <span>·</span>
+          <span>
+            Voice by <span className="font-semibold text-slate-700">ElevenLabs</span>
+          </span>
+          <span>·</span>
+          <span>
+            Deployed on <span className="font-semibold text-slate-700">Zeabur</span>
+          </span>
         </div>
       </section>
 

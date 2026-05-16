@@ -1,22 +1,24 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Play, RotateCcw, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Play, RotateCcw, ShieldAlert, ShieldCheck, Volume2, VolumeX } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
 import MessageView from './MessageView';
 import CallView from './CallView';
 import SafeCallOverlay from './SafeCallOverlay';
+import CaretakerPhone from './CaretakerPhone';
 import AgentTrace, { Phase } from './AgentTrace';
 import { SCENARIOS } from '@/lib/mockScenarios';
 
 type Stage =
   | 'idle'
-  | 'incoming'      // SMS typing dots / call ringing
-  | 'received'      // SMS message visible / call still ringing (waits for answer)
-  | 'in_call'       // call answered, captions streaming
+  | 'incoming'
+  | 'received'
+  | 'in_call'
   | 'analyzing'
   | 'investigating'
   | 'guarding'
-  | 'intercepted';
+  | 'intercepted'
+  | 'alerted'; // caretaker has been notified
 
 const SCENARIO_ORDER = ['fake_son', 'fake_bank', 'legitimate'] as const;
 
@@ -27,23 +29,24 @@ const scenarioMeta: Record<string, { label: string; sub: string; tone: string }>
 };
 
 function stageToPhase(stage: Stage): Phase {
-  if (stage === 'intercepted') return 'complete';
+  if (stage === 'intercepted' || stage === 'alerted') return 'complete';
   if (stage === 'guarding') return 'guarding';
   if (stage === 'investigating') return 'investigating';
   if (stage === 'analyzing') return 'analyzing';
   return 'idle';
 }
 
-// Agent timing after analysis begins (matches spec animation contract).
 const ANALYZE_MS = 1500;
 const INVESTIGATE_MS = 1800;
 const GUARD_MS = 1500;
+const CARETAKER_DELAY_MS = 900;
 
 export default function PhoneDemo() {
   const [scenarioId, setScenarioId] = useState<(typeof SCENARIO_ORDER)[number]>('fake_son');
   const [stage, setStage] = useState<Stage>('idle');
   const [callAnsweredAt, setCallAnsweredAt] = useState<number | null>(null);
   const [callElapsedMs, setCallElapsedMs] = useState(0);
+  const [muted, setMuted] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const scenario = SCENARIOS[scenarioId];
   const isCall = scenario.message.channel === 'call';
@@ -53,7 +56,6 @@ export default function PhoneDemo() {
     timers.current = [];
   };
 
-  // Tick the call timer + caption progress while in a live call.
   useEffect(() => {
     if (callAnsweredAt === null) return;
     const i = setInterval(() => {
@@ -62,13 +64,18 @@ export default function PhoneDemo() {
     return () => clearInterval(i);
   }, [callAnsweredAt]);
 
-  // Kick off the agent timeline starting "now".
   const startAgentTimeline = () => {
     setStage('analyzing');
     timers.current.push(setTimeout(() => setStage('investigating'), ANALYZE_MS));
     timers.current.push(setTimeout(() => setStage('guarding'), ANALYZE_MS + INVESTIGATE_MS));
     timers.current.push(
       setTimeout(() => setStage('intercepted'), ANALYZE_MS + INVESTIGATE_MS + GUARD_MS)
+    );
+    timers.current.push(
+      setTimeout(
+        () => setStage('alerted'),
+        ANALYZE_MS + INVESTIGATE_MS + GUARD_MS + CARETAKER_DELAY_MS
+      )
     );
   };
 
@@ -79,12 +86,10 @@ export default function PhoneDemo() {
     setStage('incoming');
 
     if (isCall) {
-      // Ring, then sit at 'received' waiting for the user to answer.
       timers.current.push(setTimeout(() => setStage('received'), 1600));
       return;
     }
 
-    // SMS: typing → message → agents auto-run.
     const incomingDuration = 1100;
     const beforeAnalyzing = 600;
     timers.current.push(setTimeout(() => setStage('received'), incomingDuration));
@@ -97,9 +102,6 @@ export default function PhoneDemo() {
     if (!isCall || stage !== 'received') return;
     setCallAnsweredAt(Date.now());
     setStage('in_call');
-    // Wait a beat for the first caption to land, then start the agent timeline.
-    // Overlay slides up at end of guarding ≈ 4800ms after this point — right
-    // after the 3rd caption (5800ms - 1100ms beat ≈ matches).
     timers.current.push(setTimeout(() => startAgentTimeline(), 1100));
   };
 
@@ -113,7 +115,6 @@ export default function PhoneDemo() {
 
   useEffect(() => () => clearTimers(), []);
 
-  // Auto-play once on mount and on scenario switch.
   useEffect(() => {
     const t = setTimeout(play, 700);
     return () => clearTimeout(t);
@@ -127,7 +128,8 @@ export default function PhoneDemo() {
       stage === 'analyzing' ||
       stage === 'investigating' ||
       stage === 'guarding' ||
-      stage === 'intercepted');
+      stage === 'intercepted' ||
+      stage === 'alerted');
   const callRinging = isCall && (stage === 'incoming' || stage === 'received');
   const callAnswered =
     isCall &&
@@ -135,44 +137,49 @@ export default function PhoneDemo() {
       stage === 'analyzing' ||
       stage === 'investigating' ||
       stage === 'guarding' ||
-      stage === 'intercepted');
-  const overlayVisible = stage === 'guarding' || stage === 'intercepted';
+      stage === 'intercepted' ||
+      stage === 'alerted');
+  const overlayVisible =
+    stage === 'guarding' || stage === 'intercepted' || stage === 'alerted';
+  const caretakerAlertVisible = stage === 'alerted';
   const phase: Phase = stageToPhase(stage);
 
   const playLabel =
     stage === 'idle'
       ? 'Play simulation'
-      : stage === 'intercepted'
+      : stage === 'intercepted' || stage === 'alerted'
       ? 'Replay'
       : 'Restart';
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px_380px] gap-8 items-start">
-      {/* Left column: pitch + scenario switcher */}
-      <div className="lg:pt-12">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold uppercase tracking-wider mb-5">
-          {scenario.riskLevel === 'low' ? (
-            <ShieldCheck className="w-3.5 h-3.5" />
-          ) : (
-            <ShieldAlert className="w-3.5 h-3.5" />
-          )}
-          Live simulation
+    <div className="space-y-10">
+      {/* Hero row: pitch + scenario picker */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8 items-end">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold uppercase tracking-wider mb-5">
+            {scenario.riskLevel === 'low' ? (
+              <ShieldCheck className="w-3.5 h-3.5" />
+            ) : (
+              <ShieldAlert className="w-3.5 h-3.5" />
+            )}
+            Our answer · live simulation
+          </div>
+          <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight mb-5">
+            Scams blocked
+            <br />
+            before they{' '}
+            <span className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
+              land.
+            </span>
+          </h1>
+          <p className="text-lg text-slate-600 leading-relaxed max-w-lg">
+            SafeCall Guardian watches every call and message coming to your parents.
+            Three AI agents investigate in real time — they intervene with calm,
+            plain language and ping the family so no one is left out of the loop.
+          </p>
         </div>
-        <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight mb-5">
-          Scams blocked
-          <br />
-          before they{' '}
-          <span className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
-            land.
-          </span>
-        </h1>
-        <p className="text-lg text-slate-600 leading-relaxed max-w-md mb-8">
-          SafeCall Guardian watches every call and message coming to your parents.
-          Three AI agents investigate in real time — and intervene with calm,
-          plain language before any harm is done.
-        </p>
 
-        <div className="space-y-2 mb-6">
+        <div className="space-y-2">
           <div className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
             Try a scenario
           </div>
@@ -202,60 +209,84 @@ export default function PhoneDemo() {
               </button>
             );
           })}
-        </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={play}
-            className="flex-1 min-h-[52px] bg-blue-900 hover:bg-blue-950 text-white text-base font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
-          >
-            {stage === 'idle' || stage === 'intercepted' ? (
-              <Play className="w-5 h-5" />
-            ) : (
-              <RotateCcw className="w-5 h-5" />
-            )}
-            {playLabel}
-          </button>
-          <a
-            href={`/analysis?scenario=${scenarioId}&skip=1`}
-            className="min-h-[52px] px-4 bg-white border-2 border-slate-300 hover:border-slate-500 text-slate-700 text-sm font-semibold rounded-xl flex items-center justify-center transition-colors"
-          >
-            Full report →
-          </a>
-        </div>
+          <div className="flex gap-2 pt-3">
+            <button
+              onClick={play}
+              className="flex-1 min-h-[48px] bg-blue-900 hover:bg-blue-950 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
+            >
+              {stage === 'idle' || stage === 'intercepted' || stage === 'alerted' ? (
+                <Play className="w-4 h-4" />
+              ) : (
+                <RotateCcw className="w-4 h-4" />
+              )}
+              {playLabel}
+            </button>
+            <button
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? 'Unmute voice' : 'Mute voice'}
+              title={muted ? 'Voice is muted' : 'SafeCall will speak out loud'}
+              className="min-h-[48px] w-12 bg-white border-2 border-slate-300 hover:border-slate-500 text-slate-700 rounded-xl flex items-center justify-center transition-colors"
+            >
+              {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+            <a
+              href={`/analysis?scenario=${scenarioId}&skip=1`}
+              className="min-h-[48px] px-4 bg-white border-2 border-slate-300 hover:border-slate-500 text-slate-700 text-xs font-semibold rounded-xl flex items-center justify-center transition-colors"
+            >
+              Full report →
+            </a>
+          </div>
 
-        {isCall && stage === 'received' && (
-          <p className="mt-4 text-sm text-slate-500 italic">
-            ☎ Tap the green button on the phone to answer.
-          </p>
-        )}
-      </div>
-
-      {/* Middle: the phone */}
-      <div className="flex justify-center">
-        <PhoneFrame>
-          {isCall ? (
-            <CallView
-              scenario={scenario}
-              ringing={callRinging}
-              answered={callAnswered}
-              onAnswer={answerCall}
-              callElapsedMs={callElapsedMs}
-            />
-          ) : (
-            <MessageView
-              scenario={scenario}
-              showMessage={showMessage}
-              showTyping={showTyping}
-            />
+          {isCall && stage === 'received' && (
+            <p className="text-xs text-slate-500 italic pt-2">
+              ☎ Tap the green button on Mom&apos;s phone to answer.
+            </p>
           )}
-          <SafeCallOverlay scenario={scenario} visible={overlayVisible} />
-        </PhoneFrame>
+        </div>
       </div>
 
-      {/* Right: agent trace */}
-      <div className="lg:pt-2">
-        <AgentTrace trace={scenario.agentTrace} phase={phase} />
+      {/* Theater row: phones + trace */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_360px] gap-8 items-start">
+        {/* Elderly phone */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            Mom&apos;s phone
+          </div>
+          <PhoneFrame width={300} height={620} glow="warm">
+            {isCall ? (
+              <CallView
+                scenario={scenario}
+                ringing={callRinging}
+                answered={callAnswered}
+                onAnswer={answerCall}
+                callElapsedMs={callElapsedMs}
+              />
+            ) : (
+              <MessageView
+                scenario={scenario}
+                showMessage={showMessage}
+                showTyping={showTyping}
+              />
+            )}
+            <SafeCallOverlay scenario={scenario} visible={overlayVisible} muted={muted} />
+          </PhoneFrame>
+        </div>
+
+        {/* Caretaker phone */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            Ana&apos;s phone <span className="text-slate-400">(her daughter)</span>
+          </div>
+          <PhoneFrame width={300} height={620} glow="cool">
+            <CaretakerPhone scenario={scenario} alertVisible={caretakerAlertVisible} />
+          </PhoneFrame>
+        </div>
+
+        {/* Agent trace */}
+        <div>
+          <AgentTrace trace={scenario.agentTrace} phase={phase} />
+        </div>
       </div>
     </div>
   );

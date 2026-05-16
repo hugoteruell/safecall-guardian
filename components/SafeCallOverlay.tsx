@@ -1,9 +1,12 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { ShieldCheck, ShieldAlert, X } from 'lucide-react';
 import { Scenario } from '@/lib/types';
 
 type IconMap = Record<string, React.ComponentType<{ className?: string }>>;
+
+const SCENARIOS_WITH_AUDIO = new Set(['fake_son', 'fake_bank']);
 
 const tone = {
   critical: {
@@ -32,15 +35,50 @@ const tone = {
 export default function SafeCallOverlay({
   scenario,
   visible,
+  muted = false,
 }: {
   scenario: Scenario;
   visible: boolean;
+  muted?: boolean;
 }) {
   const t = tone[scenario.riskLevel];
   const Icon = t.Icon;
   const isLow = scenario.riskLevel === 'low';
   const primary = scenario.actions.find((a) => a.primary);
   const secondary = scenario.actions.filter((a) => !a.primary).slice(0, 1);
+
+  const hasAudio = SCENARIOS_WITH_AUDIO.has(scenario.id);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wasVisible = useRef(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  useEffect(() => {
+    if (!hasAudio) return;
+    const el = audioRef.current;
+    if (!el) return;
+
+    if (visible && !wasVisible.current) {
+      if (!muted) {
+        el.currentTime = 0;
+        el.play().catch(() => {
+          /* autoplay blocked — silently ignore */
+        });
+      }
+    }
+    if (!visible && wasVisible.current) {
+      el.pause();
+      el.currentTime = 0;
+      setIsSpeaking(false);
+    }
+    wasVisible.current = visible;
+  }, [visible, muted, hasAudio]);
+
+  useEffect(() => {
+    if (muted && audioRef.current) {
+      audioRef.current.pause();
+      setIsSpeaking(false);
+    }
+  }, [muted]);
 
   // Low-risk: small discreet pill, not an interruption
   if (isLow) {
@@ -90,9 +128,27 @@ export default function SafeCallOverlay({
               <Icon className="w-4 h-4 text-white" />
             </div>
             <span className="text-sm font-bold text-slate-900">SafeCall Guardian</span>
+            {isSpeaking && (
+              <div className="flex items-end gap-0.5 h-4 ml-1" aria-hidden>
+                <span className="w-0.5 bg-blue-700 rounded-full animate-[wave_0.9s_ease-in-out_infinite]" style={{ animationDelay: '0ms', height: '60%' }} />
+                <span className="w-0.5 bg-blue-700 rounded-full animate-[wave_0.9s_ease-in-out_infinite]" style={{ animationDelay: '150ms', height: '90%' }} />
+                <span className="w-0.5 bg-blue-700 rounded-full animate-[wave_0.9s_ease-in-out_infinite]" style={{ animationDelay: '300ms', height: '70%' }} />
+              </div>
+            )}
           </div>
           <X className="w-5 h-5 text-slate-400" />
         </div>
+
+        {hasAudio && (
+          <audio
+            ref={audioRef}
+            src={`/voice/${scenario.id}.mp3`}
+            preload="auto"
+            onPlay={() => setIsSpeaking(true)}
+            onPause={() => setIsSpeaking(false)}
+            onEnded={() => setIsSpeaking(false)}
+          />
+        )}
 
         {/* Score */}
         <div className="px-6 pt-2 pb-3 flex flex-col items-center">
