@@ -28,16 +28,19 @@ function buildUrl(table: string, opts: SelectOpts = {}, id?: string) {
   return qs ? `${path}?${qs}` : path;
 }
 
+// Cold-start fetches from serverless regions can easily exceed 4s.
+// 10s gives plenty of headroom while still bounded so the demo never hangs.
+const REQUEST_TIMEOUT_MS = 10_000;
+
 async function request<T = unknown>(
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   url: string,
   body?: unknown
 ): Promise<T | null> {
   if (!BUTTERBASE_READY) return null;
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 4000);
-
     const res = await fetch(url, {
       method,
       headers: {
@@ -49,9 +52,8 @@ async function request<T = unknown>(
       signal: ctrl.signal,
       cache: 'no-store',
     });
-    clearTimeout(t);
     if (!res.ok) {
-      console.error(`[butterbase] ${method} ${url} → ${res.status}`);
+      console.warn(`[butterbase] ${method} ${url} → ${res.status} (falling back)`);
       return null;
     }
     // DELETE often returns no body
@@ -59,8 +61,15 @@ async function request<T = unknown>(
     if (!text) return null;
     return JSON.parse(text) as T;
   } catch (err) {
-    console.error(`[butterbase] ${method} ${url} failed:`, err);
+    // AbortError is our own timeout firing — expected, falls back gracefully.
+    if (err instanceof Error && err.name === 'AbortError') {
+      console.warn(`[butterbase] ${method} ${url} timed out (falling back to mock)`);
+    } else {
+      console.warn(`[butterbase] ${method} ${url} failed (falling back):`, err);
+    }
     return null;
+  } finally {
+    clearTimeout(t);
   }
 }
 
