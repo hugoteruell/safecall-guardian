@@ -78,7 +78,7 @@ export default function ScamIntelSection() {
             </a>
           </div>
           <p className="text-xl text-ink-soft leading-relaxed max-w-2xl">
-            Every <span className="font-semibold text-ink">8 minutes</span>, someone
+            Every <span className="font-semibold text-ink">5 minutes</span>, someone
             over 65 falls for a scam. The pattern is the same — urgent SMS, fake bank
             call, fake grandchild. Here&apos;s where it&apos;s happening right now.
           </p>
