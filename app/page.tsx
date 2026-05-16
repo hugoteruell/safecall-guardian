@@ -1,65 +1,73 @@
-import Image from "next/image";
+import { ShieldCheck, Sparkles } from 'lucide-react';
+import PhoneDemo from '@/components/PhoneDemo';
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* Nav */}
+      <nav className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-blue-900 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-base font-bold text-slate-900">SafeCall Guardian</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="hidden sm:flex items-center gap-1 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-medium">
+          <Sparkles className="w-3.5 h-3.5" />
+          Agentic protection · live
         </div>
-      </main>
-    </div>
+      </nav>
+
+      {/* Hero theater */}
+      <section className="max-w-7xl mx-auto px-6 pt-4 pb-20">
+        <PhoneDemo />
+      </section>
+
+      {/* Sponsor strip */}
+      <section className="border-t border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-widest text-blue-700 mb-2">
+              Bright Data
+            </div>
+            <div className="text-base font-semibold text-slate-900 mb-1">
+              Live scam intelligence
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Scrapes scam-report registries and bank security pages the moment a
+              message lands.
+            </p>
+          </div>
+          <div>
+            <div className="text-xs font-bold uppercase tracking-widest text-emerald-700 mb-2">
+              Butterbase
+            </div>
+            <div className="text-base font-semibold text-slate-900 mb-1">
+              Family memory
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Knows who Peter is, what number he uses, how he writes. Catches
+              impersonation no regex can.
+            </p>
+          </div>
+          <div>
+            <div className="text-xs font-bold uppercase tracking-widest text-purple-700 mb-2">
+              Zeabur
+            </div>
+            <div className="text-base font-semibold text-slate-900 mb-1">
+              Always-on deploy
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Protection runs in the cloud — no app to install for the parent who
+              just wants their phone to work.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer className="max-w-7xl mx-auto px-6 py-8 text-center text-sm text-slate-500">
+        Built for the May 2026 hackathon · designed with elderly users in mind.
+      </footer>
+    </main>
   );
 }
