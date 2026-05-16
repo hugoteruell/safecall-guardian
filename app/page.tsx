@@ -1,4 +1,5 @@
-import { ShieldCheck, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import PhoneDemo from '@/components/PhoneDemo';
 import ScamIntelSection from '@/components/ScamIntelSection';
 
@@ -13,9 +14,18 @@ export default function Home() {
           </div>
           <span className="text-base font-bold text-slate-900">SafeCall Guardian</span>
         </div>
-        <div className="hidden sm:flex items-center gap-1 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-medium">
-          <Sparkles className="w-3.5 h-3.5" />
-          Agentic protection · live
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">
+            <Sparkles className="w-3.5 h-3.5" />
+            Agentic protection
+          </div>
+          <Link
+            href="/app"
+            className="px-4 py-2 rounded-lg bg-blue-900 hover:bg-blue-950 text-white text-sm font-bold flex items-center gap-1.5 transition-colors"
+          >
+            Open dashboard
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </nav>
 
@@ -33,8 +43,33 @@ export default function Home() {
       </div>
 
       {/* Solution — phone theater */}
-      <section className="max-w-7xl mx-auto px-6 pt-6 pb-20">
+      <section className="max-w-7xl mx-auto px-6 pt-6 pb-12">
         <PhoneDemo />
+      </section>
+
+      {/* CTA to product */}
+      <section className="max-w-7xl mx-auto px-6 pb-20">
+        <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white rounded-3xl px-8 py-10 lg:px-12 lg:py-14 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xl">
+          <div className="max-w-xl">
+            <div className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-2">
+              For families
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-3">
+              See the dashboard your family uses to keep Mom safe.
+            </h2>
+            <p className="text-blue-100 leading-relaxed">
+              Track every block, manage trusted contacts, and tune the
+              protection to your peace of mind.
+            </p>
+          </div>
+          <Link
+            href="/app"
+            className="bg-white hover:bg-blue-50 text-blue-900 text-base font-bold px-6 py-4 rounded-xl flex items-center gap-2 shrink-0 transition-colors"
+          >
+            Open Ana&apos;s dashboard
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </div>
       </section>
 
       {/* Sponsor mini strip */}

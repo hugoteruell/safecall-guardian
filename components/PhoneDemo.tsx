@@ -115,12 +115,6 @@ export default function PhoneDemo() {
 
   useEffect(() => () => clearTimers(), []);
 
-  useEffect(() => {
-    const t = setTimeout(play, 700);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenarioId]);
-
   const showTyping = !isCall && stage === 'incoming';
   const showMessage =
     !isCall &&
