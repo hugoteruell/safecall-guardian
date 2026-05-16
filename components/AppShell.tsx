@@ -13,6 +13,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { CARETAKER, SENIOR } from '@/lib/userData';
+import Avatar from './Avatar';
 
 const navItems = [
   { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,38 +27,32 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-cream flex">
       {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 bg-white border-r border-slate-200 flex-col">
+      <aside className="hidden lg:flex w-64 shrink-0 bg-cream-soft border-r border-cream-deep flex-col">
         {/* Brand */}
-        <div className="px-5 py-5 flex items-center gap-2.5 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-blue-900 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-white" />
+        <div className="px-5 py-5 flex items-center gap-2.5 border-b border-cream-deep">
+          <div className="w-9 h-9 rounded-xl bg-ink flex items-center justify-center shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-cream" />
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-900 leading-tight">
-              SafeCall
-            </div>
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+            <div className="font-display text-lg text-ink leading-none">SafeCall</div>
+            <div className="text-[10px] text-ink-muted uppercase tracking-[0.18em] font-semibold mt-0.5">
               Guardian
             </div>
           </div>
         </div>
 
         {/* Protected user */}
-        <div className="px-5 py-4 border-b border-slate-100">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+        <div className="px-5 py-4 border-b border-cream-deep">
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink-muted mb-3">
             Protecting
           </div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-400 to-orange-300 text-white font-semibold flex items-center justify-center text-sm">
-              {SENIOR.initials}
-            </div>
+          <div className="flex items-center gap-3">
+            <Avatar seed={SENIOR.name} size="md" />
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-slate-900 truncate">
-                {SENIOR.name}
-              </div>
-              <div className="text-xs text-slate-500 truncate">
+              <div className="text-sm font-semibold text-ink truncate">{SENIOR.name}</div>
+              <div className="text-xs text-ink-muted truncate">
                 {SENIOR.relationship} · {SENIOR.age}
               </div>
             </div>
@@ -75,11 +70,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 href={href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
                   active
-                    ? 'bg-blue-50 text-blue-900'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-cream-deep text-ink'
+                    : 'text-ink-soft hover:bg-cream-deep/60 hover:text-ink'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4" strokeWidth={active ? 2.4 : 1.8} />
                 {label}
               </Link>
             );
@@ -87,16 +82,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Footer */}
-        <div className="px-3 py-3 border-t border-slate-100 space-y-1">
+        <div className="px-3 py-3 border-t border-cream-deep space-y-1">
           <Link
             href="/"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-muted hover:bg-cream-deep/60 hover:text-ink"
           >
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-4 h-4" strokeWidth={1.8} />
             Back to landing
           </Link>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-900">
-            <LogOut className="w-4 h-4" />
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-muted hover:bg-cream-deep/60 hover:text-ink">
+            <LogOut className="w-4 h-4" strokeWidth={1.8} />
             Sign out
           </button>
         </div>
@@ -104,39 +99,29 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar */}
-        <header className="bg-white border-b border-slate-200 px-5 lg:px-8 h-16 flex items-center justify-between sticky top-0 z-30">
-          {/* Mobile brand */}
+        <header className="bg-cream/85 backdrop-blur border-b border-cream-deep px-5 lg:px-8 h-16 flex items-center justify-between sticky top-0 z-30">
           <div className="lg:hidden flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-blue-900 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-cream" />
             </div>
-            <span className="text-sm font-bold text-slate-900">SafeCall</span>
+            <span className="font-display text-base text-ink">SafeCall</span>
           </div>
 
-          {/* Status pill */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-sage-soft border border-sage/30">
             <span className="relative flex w-2 h-2">
-              <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
-              <span className="relative rounded-full bg-emerald-500 w-2 h-2" />
+              <span className="absolute inset-0 rounded-full bg-sage animate-ping opacity-75" />
+              <span className="relative rounded-full bg-sage-deep w-2 h-2" />
             </span>
-            <span className="text-xs font-semibold text-emerald-700">
-              Protection active
-            </span>
+            <span className="text-xs font-semibold text-sage-deep">Protection active</span>
           </div>
 
-          {/* User chip */}
-          <button className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-50">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white font-semibold flex items-center justify-center text-xs">
-              {CARETAKER.initials}
-            </div>
+          <button className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-cream-soft transition-colors">
+            <Avatar seed={CARETAKER.name} size="sm" />
             <div className="hidden sm:block text-left">
-              <div className="text-xs font-semibold text-slate-900 leading-tight">
-                {CARETAKER.name}
-              </div>
-              <div className="text-[10px] text-slate-500">{CARETAKER.email}</div>
+              <div className="text-xs font-semibold text-ink leading-tight">{CARETAKER.name}</div>
+              <div className="text-[10px] text-ink-muted">{CARETAKER.email}</div>
             </div>
-            <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />
+            <ChevronDown className="w-4 h-4 text-ink-muted hidden sm:block" />
           </button>
         </header>
 

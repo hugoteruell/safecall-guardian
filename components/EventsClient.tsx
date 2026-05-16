@@ -32,11 +32,10 @@ export default function EventsClient({ events }: { events: ProtectionEvent[] }) 
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Events</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Everything SafeCall has filtered for Mom. Click an event for the full
-          analysis.
+      <div className="animate-fade-up">
+        <h1 className="font-display text-4xl text-ink leading-none">Events</h1>
+        <p className="text-sm text-ink-muted mt-2">
+          Everything SafeCall has filtered for Mom. Click an event for the full analysis.
         </p>
       </div>
 
@@ -46,10 +45,10 @@ export default function EventsClient({ events }: { events: ProtectionEvent[] }) 
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
                 filter === f.id
-                  ? 'bg-slate-900 border-slate-900 text-white'
-                  : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
+                  ? 'bg-ink border-ink text-cream'
+                  : 'bg-paper border-cream-deep text-ink-soft hover:border-ink-muted'
               }`}
             >
               {f.label}
@@ -57,24 +56,18 @@ export default function EventsClient({ events }: { events: ProtectionEvent[] }) 
           ))}
         </div>
         <div className="flex-1 relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.8} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by sender, summary, or scam type…"
-            className="w-full h-10 pl-9 pr-3 bg-white border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+            className="w-full h-10 pl-9 pr-3 bg-paper border border-cream-deep rounded-lg text-sm placeholder:text-ink-muted focus:outline-none focus:border-ink"
           />
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        {list.length > 0 ? (
-          <ActivityTimeline events={list} />
-        ) : (
-          <div className="px-5 py-10 text-center text-sm text-slate-500">
-            No events match those filters.
-          </div>
-        )}
+      <div className="bg-paper border border-cream-deep rounded-3xl overflow-hidden">
+        <ActivityTimeline events={list} />
       </div>
     </div>
   );

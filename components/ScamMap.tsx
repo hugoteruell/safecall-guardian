@@ -15,7 +15,6 @@ type Props = {
 };
 
 function bubbleRadius(count: number, max: number) {
-  // Scale so the largest is ~14px, smallest ~4px.
   const min = 4;
   const top = 14;
   return min + (count / max) * (top - min);
@@ -44,12 +43,12 @@ export default function ScamMap({ reports }: Props) {
               <Geography
                 key={geo.rsmKey}
                 geography={geo}
-                fill="#f1f5f9"
-                stroke="#cbd5e1"
+                fill="#F5EFE0"
+                stroke="#EFE6D2"
                 strokeWidth={0.6}
                 style={{
                   default: { outline: 'none' },
-                  hover: { outline: 'none', fill: '#e2e8f0' },
+                  hover: { outline: 'none', fill: '#EFE6D2' },
                   pressed: { outline: 'none' },
                 }}
               />
@@ -62,11 +61,10 @@ export default function ScamMap({ reports }: Props) {
           const color = CATEGORY_COLOR[r.category];
           return (
             <Marker key={r.id} coordinates={[r.lng, r.lat]}>
-              {/* Pulse ring */}
               <circle
                 r={radius * 1.8}
                 fill={color}
-                opacity={0.18}
+                opacity={0.15}
                 style={{ pointerEvents: 'none' }}
               >
                 <animate
@@ -77,16 +75,15 @@ export default function ScamMap({ reports }: Props) {
                 />
                 <animate
                   attributeName="opacity"
-                  values="0.35;0;0.35"
+                  values="0.3;0;0.3"
                   dur="2.2s"
                   repeatCount="indefinite"
                 />
               </circle>
-              {/* Main dot */}
               <circle
                 r={radius}
                 fill={color}
-                stroke="#ffffff"
+                stroke="#FBF7EE"
                 strokeWidth={1.4}
                 onMouseEnter={() => setHovered(r)}
                 onMouseLeave={() => setHovered(null)}
@@ -97,27 +94,27 @@ export default function ScamMap({ reports }: Props) {
         })}
       </ComposableMap>
 
-      {/* Tooltip card pinned to the side */}
-      <div className="absolute top-3 right-3 w-56 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
+      {/* Tooltip card */}
+      <div className="absolute top-3 right-3 w-56 bg-cream border border-cream-deep rounded-2xl px-4 py-3 shadow-sm">
         {hovered ? (
           <>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink-muted mb-1">
               {CATEGORY_LABEL[hovered.category]}
             </div>
-            <div className="text-base font-bold text-slate-900">
+            <div className="font-display text-lg text-ink">
               {hovered.city}, {hovered.state}
             </div>
-            <div className="mt-1 text-sm text-slate-600">
-              <span className="text-red-600 font-semibold">{hovered.count}</span>{' '}
+            <div className="mt-1 text-sm text-ink-soft numerals">
+              <span className="text-bordeaux font-semibold">{hovered.count}</span>{' '}
               reports this week
             </div>
           </>
         ) : (
           <>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink-muted mb-1">
               Hover a city
             </div>
-            <div className="text-sm text-slate-600 leading-snug">
+            <div className="text-sm text-ink-soft leading-snug">
               Bubble size scales with reports this week. Color groups by scam type.
             </div>
           </>

@@ -2,11 +2,16 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ variable: '--font-inter', subsets: ['latin'] });
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: 'SafeCall Guardian',
-  description: 'A calm, agentic scam-protection assistant for elderly users.',
+  title: 'SafeCall Guardian — A calm guardian for your parents.',
+  description:
+    'An agentic AI layer that intercepts scam calls and messages before they reach the people you love. Built for families.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

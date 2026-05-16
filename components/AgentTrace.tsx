@@ -16,9 +16,9 @@ function getStatus(agent: 'analyzer' | 'investigator' | 'guardian', phase: Phase
 
 export default function AgentTrace({ trace, phase }: { trace: AgentTraceData; phase: Phase }) {
   return (
-    <aside className="bg-slate-950 text-slate-100 rounded-2xl p-6 font-mono text-sm lg:sticky lg:top-10 lg:self-start">
-      <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-widest mb-6">
-        <Cpu className="w-4 h-4" />
+    <aside className="bg-ink text-cream/95 rounded-3xl p-6 font-mono text-sm lg:sticky lg:top-10 lg:self-start shadow-xl">
+      <div className="flex items-center gap-2 text-cream/60 text-[10px] uppercase tracking-[0.2em] mb-6 font-sans font-semibold">
+        <Cpu className="w-3.5 h-3.5" strokeWidth={1.8} />
         Agent execution
       </div>
       <AgentStep name="Analyzer" status={getStatus('analyzer', phase)} log={trace.analyzer} />

@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import StatusBar from './StatusBar';
 import { Phone, PhoneOff, Mic, Volume2, Plus, Grid3x3, Captions } from 'lucide-react';
 import { Scenario } from '@/lib/types';
+import { playRing } from '@/lib/sounds';
 
 type Props = {
   scenario: Scenario;
@@ -11,6 +12,10 @@ type Props = {
   onAnswer: () => void;
   /** ms elapsed since the call was answered — drives captions + timer */
   callElapsedMs: number;
+  /** When true, the scammer audio is silenced (mute toggle in parent). */
+  muted?: boolean;
+  /** When SafeCall slides up, scammer audio is cut mid-sentence. */
+  safeCallActive?: boolean;
 };
 
 function formatTimer(ms: number) {
@@ -20,12 +25,72 @@ function formatTimer(ms: number) {
   return `${m}:${ss}`;
 }
 
-export default function CallView({ scenario, ringing, answered, onAnswer, callElapsedMs }: Props) {
+export default function CallView({
+  scenario,
+  ringing,
+  answered,
+  onAnswer,
+  callElapsedMs,
+  muted = false,
+  safeCallActive = false,
+}: Props) {
   const script = scenario.callScript ?? [];
-  const currentCaption =
-    [...script].reverse().find((c) => callElapsedMs >= c.atMs)?.text ?? null;
+  const currentIndex = script.reduce(
+    (acc, c, i) => (callElapsedMs >= c.atMs ? i : acc),
+    -1
+  );
+  const currentCaption = currentIndex >= 0 ? script[currentIndex].text : null;
 
-  // Tiny "tick" to re-render the timer every 500ms while in call.
+  // Scammer audio playback — one MP3 per caption, plays as the caption appears.
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playedRef = useRef<Set<number>>(new Set());
+
+  // Reset played-tracking on a new call answer.
+  useEffect(() => {
+    if (!answered) {
+      playedRef.current = new Set();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+  }, [answered]);
+
+  // Ring once when the call starts ringing.
+  const ringingRef = useRef(false);
+  useEffect(() => {
+    if (ringing && !ringingRef.current && !muted) {
+      playRing(1);
+      ringingRef.current = true;
+    }
+    if (!ringing) ringingRef.current = false;
+  }, [ringing, muted]);
+
+  // Stop scammer mid-sentence when SafeCall takes over.
+  useEffect(() => {
+    if (safeCallActive && audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, [safeCallActive]);
+
+  // Play the audio for the latest caption that has crossed its timestamp.
+  useEffect(() => {
+    if (!answered || muted || safeCallActive || currentIndex < 0) return;
+    if (playedRef.current.has(currentIndex)) return;
+    if (scenario.id !== 'fake_bank') return; // only the bank scenario has scammer audio
+
+    const src = `/voice/scammer_fake_bank_${currentIndex + 1}.mp3`;
+    if (audioRef.current) {
+      audioRef.current.src = src;
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {
+        /* autoplay blocked — silently ignore */
+      });
+      playedRef.current.add(currentIndex);
+    }
+  }, [currentIndex, answered, muted, safeCallActive, scenario.id]);
+
+  // Tick the timer while in call (re-render every 500ms).
   const [, setTick] = useState(0);
   useEffect(() => {
     if (!answered) return;
@@ -47,7 +112,9 @@ export default function CallView({ scenario, ringing, answered, onAnswer, callEl
           ?
         </div>
         <div className="text-2xl font-light mb-1">Unknown</div>
-        <div className="text-base text-slate-300 mb-1">{scenario.message.from}</div>
+        <div className="text-base text-slate-300 mb-1 numerals">
+          {scenario.message.from}
+        </div>
         <div className="text-sm text-slate-400 italic mb-3">maybe: Bank of America</div>
         {ringing && <div className="text-sm text-slate-400 mt-2">incoming call…</div>}
         {answered && (
@@ -70,7 +137,7 @@ export default function CallView({ scenario, ringing, answered, onAnswer, callEl
                 key={currentCaption}
                 className="text-[15px] leading-snug text-white animate-[slideIn_0.4s_ease-out]"
               >
-                “{currentCaption}”
+                &ldquo;{currentCaption}&rdquo;
               </p>
             ) : (
               <p className="text-sm italic text-slate-500">…connecting</p>
@@ -79,7 +146,16 @@ export default function CallView({ scenario, ringing, answered, onAnswer, callEl
         </div>
       )}
 
-      {/* In-call control grid OR action grid */}
+      {/* Hidden audio element drives the scammer voice. */}
+      <audio
+        ref={audioRef}
+        preload="auto"
+        onEnded={() => {
+          /* no-op */
+        }}
+      />
+
+      {/* In-call control grid OR ringing action grid */}
       {answered ? (
         <div className="px-8 pb-4 grid grid-cols-3 gap-4 text-center text-[11px] text-slate-300">
           <div className="flex flex-col items-center gap-1">

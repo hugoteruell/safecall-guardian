@@ -1,27 +1,97 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Typography — Inter for everything, Claude.ai style */
   --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-display: var(--font-inter), Inter, system-ui, sans-serif;
+
+  /* Warm intelligence palette */
+  --color-cream: #FBF7EE;
+  --color-cream-soft: #F5EFE0;
+  --color-cream-deep: #EFE6D2;
+  --color-paper: #FFFFFF;
+
+  --color-ink: #0A1A3B;
+  --color-ink-soft: #2A3D6B;
+  --color-ink-muted: #5B6B8C;
+
+  --color-sage: #7FA486;
+  --color-sage-soft: #DDE9DC;
+  --color-sage-deep: #4F7659;
+
+  --color-coral: #E07856;
+  --color-coral-soft: #F8DFD2;
+  --color-coral-deep: #B8553A;
+
+  --color-bordeaux: #9B2C2C;
+  --color-bordeaux-soft: #F3DADA;
+  --color-bordeaux-deep: #6B1E1E;
+
+  --color-gold: #C8956D;
+  --color-gold-soft: #F2E3D2;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--color-cream);
+  color: var(--color-ink);
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+.font-display {
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-feature-settings: 'ss01', 'cv11';
 }
 
 @keyframes slideIn {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) scale(0.96);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  0% { opacity: 0; transform: translateY(8px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes wave {
   0%, 100% { transform: scaleY(0.5); }
   50% { transform: scaleY(1.2); }
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -12px rgba(10, 26, 59, 0.18);
+}
+
+.numerals {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum', 'lnum';
 }

@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { CreditCard, Trash2 } from 'lucide-react';
 import type { Caretaker, Senior } from '@/lib/userData';
 import type { SettingsRow } from '@/lib/queries';
+import { useToast } from './Toast';
 
 type Props = {
   caretaker: Caretaker;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function SettingsClient({ caretaker, senior, initial }: Props) {
+  const { toast } = useToast();
   const [state, setState] = useState({
     notif_push: initial.notif_push,
     notif_email: initial.notif_email,
@@ -20,7 +22,6 @@ export default function SettingsClient({ caretaker, senior, initial }: Props) {
     voice_enabled: initial.voice_enabled,
   });
 
-  // Debounce risk_threshold writes — slider fires many times.
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function persist(patch: Partial<typeof state>) {
@@ -28,29 +29,26 @@ export default function SettingsClient({ caretaker, senior, initial }: Props) {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(patch),
-    }).catch(() => {
-      /* ignore — UI already updated optimistically */
-    });
+    }).catch(() => {});
   }
 
   function update<K extends keyof typeof state>(key: K, value: (typeof state)[K]) {
     setState((s) => ({ ...s, [key]: value }));
     persist({ [key]: value } as Partial<typeof state>);
+    toast({ title: 'Preference updated.' });
   }
 
   function updateThresholdDebounced(value: number) {
     setState((s) => ({ ...s, risk_threshold: value }));
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      persist({ risk_threshold: value });
-    }, 300);
+    debounceRef.current = setTimeout(() => persist({ risk_threshold: value }), 300);
   }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-        <p className="text-sm text-slate-500 mt-1">
+      <div className="animate-fade-up">
+        <h1 className="font-display text-4xl text-ink leading-none">Settings</h1>
+        <p className="text-sm text-ink-muted mt-2">
           Tune SafeCall the way that works for you and {senior.shortName}.
         </p>
       </div>
@@ -83,14 +81,14 @@ export default function SettingsClient({ caretaker, senior, initial }: Props) {
       </Card>
 
       <Card title="How SafeCall responds">
-        <div className="px-5 py-4 border-b border-slate-100">
+        <div className="px-6 py-5 border-b border-cream-deep">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-slate-900">Risk threshold</span>
-            <span className="text-sm font-bold tabular-nums text-blue-700">
+            <span className="text-sm font-semibold text-ink">Risk threshold</span>
+            <span className="font-display text-2xl text-ink numerals">
               {state.risk_threshold}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mb-3">
+          <p className="text-xs text-ink-muted mb-3">
             Calls and messages scoring above this are blocked. Lower = more cautious.
           </p>
           <input
@@ -99,9 +97,9 @@ export default function SettingsClient({ caretaker, senior, initial }: Props) {
             max={100}
             value={state.risk_threshold}
             onChange={(e) => updateThresholdDebounced(Number(e.target.value))}
-            className="w-full accent-blue-700"
+            className="w-full accent-ink"
           />
-          <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider">
+          <div className="flex justify-between text-[10px] text-ink-muted mt-1 font-semibold uppercase tracking-[0.15em]">
             <span>Trust most</span>
             <span>Block most</span>
           </div>
@@ -121,40 +119,36 @@ export default function SettingsClient({ caretaker, senior, initial }: Props) {
       </Card>
 
       <Card title="Plan & billing">
-        <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100">
+        <div className="px-6 py-4 flex items-center justify-between border-b border-cream-deep">
           <div>
-            <div className="text-sm font-semibold text-slate-900">SafeCall Family</div>
-            <div className="text-xs text-slate-500 mt-0.5">
+            <div className="text-sm font-semibold text-ink">SafeCall Family</div>
+            <div className="text-xs text-ink-muted mt-0.5">
               $9 per month · renews June 12, 2026
             </div>
           </div>
-          <span className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="text-[11px] font-bold uppercase tracking-[0.15em] px-2 py-1 rounded bg-sage-soft text-sage-deep border border-sage/30">
             Active
           </span>
         </div>
-        <div className="px-5 py-4 flex items-center justify-between">
+        <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <CreditCard className="w-4 h-4 text-slate-400" />
-            <div className="text-sm text-slate-700">Visa ending in 4242</div>
+            <CreditCard className="w-4 h-4 text-ink-muted" strokeWidth={1.8} />
+            <div className="text-sm text-ink-soft numerals">Visa ending in 4242</div>
           </div>
-          <button className="text-xs font-semibold text-blue-700 hover:text-blue-900">
-            Update
-          </button>
+          <button className="text-xs font-semibold text-ink-soft hover:text-ink">Update</button>
         </div>
       </Card>
 
       <Card title="Danger zone" tone="danger">
-        <div className="px-5 py-4 flex items-center justify-between">
+        <div className="px-6 py-4 flex items-center justify-between">
           <div>
-            <div className="text-sm font-semibold text-slate-900">
-              Delete SafeCall account
-            </div>
-            <div className="text-xs text-slate-500 mt-0.5">
+            <div className="text-sm font-semibold text-ink">Delete SafeCall account</div>
+            <div className="text-xs text-ink-muted mt-0.5">
               Removes Mom&apos;s protection immediately. This is not reversible.
             </div>
           </div>
-          <button className="text-xs font-semibold text-red-700 hover:text-red-900 flex items-center gap-1.5">
-            <Trash2 className="w-3.5 h-3.5" />
+          <button className="text-xs font-semibold text-bordeaux hover:text-bordeaux-deep flex items-center gap-1.5">
+            <Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} />
             Delete
           </button>
         </div>
@@ -174,12 +168,12 @@ function Card({
 }) {
   return (
     <section
-      className={`bg-white border rounded-2xl overflow-hidden ${
-        tone === 'danger' ? 'border-red-200' : 'border-slate-200'
+      className={`bg-paper border rounded-3xl overflow-hidden ${
+        tone === 'danger' ? 'border-bordeaux/20' : 'border-cream-deep'
       }`}
     >
-      <div className="px-5 py-3 border-b border-slate-100">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+      <div className="px-6 py-3 border-b border-cream-deep">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-muted">
           {title}
         </h2>
       </div>
@@ -190,9 +184,9 @@ function Card({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="px-5 py-3 flex items-center justify-between border-b border-slate-100 last:border-0">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-semibold text-slate-900">{value}</span>
+    <div className="px-6 py-3 flex items-center justify-between border-b border-cream-deep last:border-0">
+      <span className="text-sm text-ink-muted">{label}</span>
+      <span className="text-sm font-semibold text-ink">{value}</span>
     </div>
   );
 }
@@ -209,20 +203,20 @@ function Toggle({
   onToggle: () => void;
 }) {
   return (
-    <div className="px-5 py-4 flex items-start gap-4 border-b border-slate-100 last:border-0">
+    <div className="px-6 py-4 flex items-start gap-4 border-b border-cream-deep last:border-0">
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold text-slate-900">{label}</div>
-        {desc && <div className="text-xs text-slate-500 mt-0.5">{desc}</div>}
+        <div className="text-sm font-semibold text-ink">{label}</div>
+        {desc && <div className="text-xs text-ink-muted mt-0.5">{desc}</div>}
       </div>
       <button
         onClick={onToggle}
         className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
-          on ? 'bg-blue-700' : 'bg-slate-300'
+          on ? 'bg-ink' : 'bg-cream-deep'
         }`}
         aria-pressed={on}
       >
         <span
-          className="absolute top-0.5 left-0 w-5 h-5 bg-white rounded-full shadow transition-transform"
+          className="absolute top-0.5 left-0 w-5 h-5 bg-paper rounded-full shadow transition-transform"
           style={{ transform: on ? 'translateX(22px)' : 'translateX(2px)' }}
         />
       </button>

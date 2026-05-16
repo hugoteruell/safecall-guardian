@@ -34,15 +34,15 @@ export default function AnalysisScreen({ scenario, skipAnimation = false }: Prop
   const complete = phase === 'complete';
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 antialiased">
+    <main className="min-h-screen bg-cream text-ink antialiased">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 max-w-7xl mx-auto px-6 py-10">
         <div>
           <OriginalMessage message={scenario.message} />
 
           {!complete && (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <div className="w-3 h-3 rounded-full bg-blue-900 animate-pulse" />
-              <p className="text-2xl text-slate-500">Checking this message…</p>
+              <div className="w-3 h-3 rounded-full bg-ink animate-pulse" />
+              <p className="text-2xl text-ink-muted font-display">Checking this message…</p>
             </div>
           )}
 
@@ -64,7 +64,7 @@ export default function AnalysisScreen({ scenario, skipAnimation = false }: Prop
 
               {scenario.signals.length > 0 && (
                 <>
-                  <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500 mt-12 mb-4">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-muted mt-12 mb-4">
                     Signals detected
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -77,7 +77,7 @@ export default function AnalysisScreen({ scenario, skipAnimation = false }: Prop
 
               {scenario.evidence.length > 0 && (
                 <>
-                  <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500 mt-12 mb-4">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-muted mt-12 mb-4">
                     Evidence
                   </h2>
                   <div className="grid grid-cols-1 gap-4">

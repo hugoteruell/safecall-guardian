@@ -1,6 +1,9 @@
+'use client';
+import { useEffect, useRef } from 'react';
 import StatusBar from './StatusBar';
 import { ChevronLeft, Video } from 'lucide-react';
 import { Scenario } from '@/lib/types';
+import { playMessageTone } from '@/lib/sounds';
 
 type Props = {
   scenario: Scenario;
@@ -27,6 +30,16 @@ const priorChat: Record<string, { from: 'them' | 'you'; text: string; time: stri
 export default function MessageView({ scenario, showMessage, showTyping }: Props) {
   const header = senderHeader(scenario);
   const prior = priorChat[scenario.id] ?? [];
+
+  // Ping when a new message bubble appears.
+  const wasShown = useRef(false);
+  useEffect(() => {
+    if (showMessage && !wasShown.current) {
+      playMessageTone();
+      wasShown.current = true;
+    }
+    if (!showMessage) wasShown.current = false;
+  }, [showMessage]);
 
   return (
     <div className="absolute inset-0 flex flex-col bg-white">

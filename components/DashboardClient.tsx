@@ -18,6 +18,10 @@ import {
 } from '@/lib/userData';
 import { formatMoney, formatDate } from '@/lib/format';
 import ActivityTimeline from './ActivityTimeline';
+import Avatar from './Avatar';
+import AnimatedNumber from './AnimatedNumber';
+import Sparkline from './Sparkline';
+import { useToast } from './Toast';
 
 type Props = {
   caretaker: Caretaker;
@@ -40,11 +44,11 @@ export default function DashboardClient({
   initialPausedUntilIso,
 }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pausedUntil, setPausedUntil] = useState<string | null>(initialPausedUntilIso);
   const [pending, startTransition] = useTransition();
   const paused = isFuture(pausedUntil);
 
-  // App "today" is fixed for demo consistency.
   const TODAY_ISO = '2026-05-16T17:00:00Z';
   const TODAY_MS = new Date(TODAY_ISO).getTime();
   const oneWeekAgo = TODAY_MS - 7 * 24 * 60 * 60 * 1000;
@@ -60,9 +64,28 @@ export default function DashboardClient({
 
   const lastBlocked = events.find((e) => e.status === 'blocked');
 
+  // Build a 7-day series of blocked counts for the sparkline.
+  const weeklySeries = (() => {
+    const series = new Array(7).fill(0);
+    const dayMs = 24 * 60 * 60 * 1000;
+    for (const e of events) {
+      if (e.status !== 'blocked') continue;
+      const t = new Date(e.timestampIso).getTime();
+      const dayIdx = 6 - Math.floor((TODAY_MS - t) / dayMs);
+      if (dayIdx >= 0 && dayIdx < 7) series[dayIdx] += 1;
+    }
+    // Boost zeros minimally so the spark looks alive even on quiet weeks.
+    return series.map((v) => v + 0.4);
+  })();
+
+  // Monthly series for all-time and money-saved cards: fake but plausible.
+  const monthlySeriesAllTime = [3, 5, 4, 7, 6, 8, blockedAllTime];
+  const monthlySeriesMoney = [1200, 2400, 1800, 3500, 4200, 5500, moneySavedTotal];
+
   async function togglePause() {
+    const willPause = !paused;
     const newUntil = paused ? null : new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    setPausedUntil(newUntil); // optimistic
+    setPausedUntil(newUntil);
     startTransition(async () => {
       try {
         await fetch('/api/pause', {
@@ -71,8 +94,15 @@ export default function DashboardClient({
           body: JSON.stringify({ until: newUntil }),
         });
         router.refresh();
+        toast({
+          title: willPause ? 'Protection paused' : 'Protection resumed',
+          description: willPause
+            ? `${senior.shortName} is exposed for the next hour.`
+            : `${senior.shortName} is fully protected again.`,
+          variant: willPause ? 'error' : 'success',
+        });
       } catch {
-        // ignore — UI already updated optimistically
+        /* optimistic */
       }
     });
   }
@@ -80,12 +110,12 @@ export default function DashboardClient({
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Greeting */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
+      <div className="flex items-end justify-between gap-4 flex-wrap animate-fade-up">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">
-            Good afternoon, {caretaker.shortName}
+          <h1 className="font-display text-4xl text-ink leading-none">
+            Good afternoon, {caretaker.shortName}.
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-muted mt-2">
             Here&apos;s what happened with {senior.shortName} today.
           </p>
         </div>
@@ -95,8 +125,8 @@ export default function DashboardClient({
             disabled={pending}
             className={`min-h-[40px] px-4 border text-sm font-semibold rounded-lg flex items-center gap-2 transition-colors ${
               paused
-                ? 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
-                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
+                ? 'bg-coral-soft border-coral/40 text-coral-deep hover:bg-coral-soft/80'
+                : 'bg-paper border-cream-deep text-ink-soft hover:border-ink-muted'
             } disabled:opacity-50`}
           >
             {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
@@ -106,60 +136,60 @@ export default function DashboardClient({
       </div>
 
       {paused && pausedUntil && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3 text-sm">
-          <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-          <span className="text-amber-900 font-semibold">
+        <div className="bg-coral-soft border border-coral/40 rounded-xl px-4 py-3 flex items-center gap-3 text-sm animate-fade-up">
+          <div className="w-2 h-2 rounded-full bg-coral animate-pulse" />
+          <span className="text-coral-deep font-semibold">
             Protection paused until{' '}
             {new Date(pausedUntil).toLocaleTimeString([], {
               hour: 'numeric',
               minute: '2-digit',
             })}
           </span>
-          <span className="text-amber-700">
-            No calls or messages are being filtered.
-          </span>
+          <span className="text-coral-deep/80">No calls or messages are being filtered.</span>
         </div>
       )}
 
       {/* Hero status */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
         <div
-          className={`relative rounded-2xl border p-6 overflow-hidden ${
+          className={`relative rounded-3xl border p-7 overflow-hidden card-lift ${
             paused
-              ? 'bg-amber-50 border-amber-200'
-              : 'bg-gradient-to-br from-blue-900 to-blue-700 border-blue-900 text-white'
+              ? 'bg-coral-soft border-coral/30'
+              : 'bg-ink border-ink text-cream'
           }`}
         >
           {!paused && (
-            <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-white/5 blur-2xl" />
+            <>
+              <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-cream/5 blur-3xl" />
+              <div className="absolute -right-24 top-8 w-48 h-48 rounded-full bg-coral/15 blur-3xl" />
+            </>
           )}
           <div
-            className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-3 ${
-              paused ? 'text-amber-700' : 'text-blue-200'
+            className={`flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] mb-4 ${
+              paused ? 'text-coral-deep' : 'text-cream/70'
             }`}
           >
             {!paused && (
               <span className="relative flex w-2 h-2">
-                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
-                <span className="relative rounded-full bg-emerald-400 w-2 h-2" />
+                <span className="absolute inset-0 rounded-full bg-sage animate-ping opacity-75" />
+                <span className="relative rounded-full bg-sage w-2 h-2" />
               </span>
             )}
             {paused ? 'Protection paused' : 'Protection active'}
           </div>
-          <div className="text-3xl lg:text-4xl font-bold leading-tight mb-2">
+          <div className="font-display text-4xl lg:text-5xl leading-[1.05] mb-3">
             {senior.shortName} is{' '}
             {paused ? 'temporarily exposed.' : 'protected right now.'}
           </div>
           {!paused && lastBlocked && (
-            <p className="text-sm leading-relaxed text-blue-100 max-w-md">
-              Last block: <span className="font-semibold">{lastBlocked.summary}</span>
-              {' · '}
-              from {lastBlocked.from}.
+            <p className="text-sm leading-relaxed text-cream/80 max-w-md">
+              Last block: <span className="font-semibold text-cream">{lastBlocked.summary}</span>
+              {' · '}from {lastBlocked.from}.
             </p>
           )}
           <p
-            className={`text-xs mt-3 ${
-              paused ? 'text-amber-700' : 'text-blue-200/80'
+            className={`text-xs mt-4 ${
+              paused ? 'text-coral-deep/80' : 'text-cream/60'
             }`}
           >
             Watching since {formatDate(senior.protectedSinceIso)}
@@ -167,43 +197,39 @@ export default function DashboardClient({
 
           <Link
             href="/app/events"
-            className={`inline-flex mt-5 items-center gap-1 text-sm font-semibold ${
-              paused ? 'text-amber-900' : 'text-white'
-            } hover:underline`}
+            className={`inline-flex mt-6 items-center gap-1 text-sm font-semibold ${
+              paused ? 'text-coral-deep' : 'text-cream'
+            } hover:gap-2 transition-all`}
           >
             View activity <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* Mom's profile card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-orange-300 text-white font-bold flex items-center justify-center">
-              {senior.initials}
-            </div>
+        <div className="bg-paper border border-cream-deep rounded-3xl p-6 card-lift">
+          <div className="flex items-center gap-3 mb-5">
+            <Avatar seed={senior.name} size="lg" ring />
             <div className="min-w-0">
-              <div className="text-base font-bold text-slate-900 leading-tight">
+              <div className="font-display text-xl text-ink leading-tight">
                 {senior.name}
               </div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-ink-muted mt-0.5">
                 {senior.relationship} · {senior.age} · {senior.location}
               </div>
             </div>
           </div>
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-500">Phone</span>
-              <span className="font-semibold text-slate-900 tabular-nums">
-                {senior.phone}
-              </span>
+              <span className="text-ink-muted">Phone</span>
+              <span className="font-semibold text-ink numerals">{senior.phone}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Trusted contacts</span>
-              <span className="font-semibold text-slate-900">{contacts.length}</span>
+              <span className="text-ink-muted">Trusted contacts</span>
+              <span className="font-semibold text-ink numerals">{contacts.length}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Protected since</span>
-              <span className="font-semibold text-slate-900">
+              <span className="text-ink-muted">Protected since</span>
+              <span className="font-semibold text-ink">
                 {formatDate(senior.protectedSinceIso)}
               </span>
             </div>
@@ -215,34 +241,41 @@ export default function DashboardClient({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Stat
           label="Blocked this week"
-          value={blockedThisWeek.toString()}
+          target={blockedThisWeek}
           tone="bad"
           delta="+2 from last week"
+          spark={weeklySeries}
+          sparkColor="#9B2C2C"
         />
         <Stat
           label="Blocked all time"
-          value={blockedAllTime.toString()}
+          target={blockedAllTime}
           tone="neutral"
           delta={`Since ${formatDate(senior.protectedSinceIso)}`}
+          spark={monthlySeriesAllTime}
+          sparkColor="#0A1A3B"
         />
         <Stat
           label="Money saved"
-          value={formatMoney(moneySavedTotal)}
+          target={moneySavedTotal}
           tone="good"
           delta="Across all events"
+          formatter={formatMoney}
+          spark={monthlySeriesMoney}
+          sparkColor="#4F7659"
         />
       </div>
 
       {/* Activity + family contacts */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        <div className="bg-paper border border-cream-deep rounded-3xl overflow-hidden card-lift">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-cream-deep">
+            <h2 className="text-[11px] font-bold text-ink uppercase tracking-[0.18em]">
               Recent activity
             </h2>
             <Link
               href="/app/events"
-              className="text-xs font-semibold text-blue-700 hover:text-blue-900 flex items-center gap-1"
+              className="text-xs font-semibold text-ink-soft hover:text-ink flex items-center gap-1"
             >
               See all <ArrowRight className="w-3 h-3" />
             </Link>
@@ -251,40 +284,36 @@ export default function DashboardClient({
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <div className="bg-paper border border-cream-deep rounded-3xl overflow-hidden card-lift">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-cream-deep">
+              <h2 className="text-[11px] font-bold text-ink uppercase tracking-[0.18em]">
                 Family
               </h2>
               <Link
                 href="/app/family"
-                className="text-xs font-semibold text-blue-700 hover:text-blue-900 flex items-center gap-1"
+                className="text-xs font-semibold text-ink-soft hover:text-ink flex items-center gap-1"
               >
                 Manage <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-cream-deep">
               {contacts.slice(0, 3).map((c) => (
-                <li key={c.id} className="px-5 py-3 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-700 font-semibold flex items-center justify-center text-xs">
-                    {c.initials}
-                  </div>
+                <li key={c.id} className="px-6 py-3 flex items-center gap-3">
+                  <Avatar seed={c.name} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-slate-900 truncate">
-                      {c.name}
-                    </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-sm font-semibold text-ink truncate">{c.name}</div>
+                    <div className="text-xs text-ink-muted">
                       {c.relationship} · {c.interactions} msgs
                     </div>
                   </div>
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  <ShieldCheck className="w-4 h-4 text-sage-deep" />
                 </li>
               ))}
             </ul>
-            <div className="px-5 py-3 border-t border-slate-100">
+            <div className="px-6 py-3 border-t border-cream-deep">
               <Link
                 href="/app/family"
-                className="text-xs font-semibold text-blue-700 hover:text-blue-900 flex items-center gap-1"
+                className="text-xs font-semibold text-ink-soft hover:text-ink flex items-center gap-1"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 Add a contact
@@ -292,15 +321,15 @@ export default function DashboardClient({
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-2xl p-5">
-            <div className="flex items-center gap-2 text-emerald-700 text-xs font-bold uppercase tracking-widest mb-2">
+          <div className="bg-gradient-to-br from-sage-soft to-cream-soft border border-sage/30 rounded-3xl p-6 card-lift">
+            <div className="flex items-center gap-2 text-sage-deep text-[11px] font-bold uppercase tracking-[0.18em] mb-3">
               <TrendingUp className="w-3.5 h-3.5" />
               This month
             </div>
-            <div className="text-2xl font-bold text-emerald-900 leading-tight mb-1">
+            <div className="font-display text-2xl text-ink leading-tight mb-2">
               SafeCall caught {blockedAllTime} scams targeting your mom.
             </div>
-            <div className="text-sm text-emerald-800/80 leading-relaxed">
+            <div className="text-sm text-ink-soft leading-relaxed">
               That&apos;s {formatMoney(moneySavedTotal)} in attempted theft, intercepted
               before {senior.shortName} had to think about it.
             </div>
@@ -313,28 +342,43 @@ export default function DashboardClient({
 
 function Stat({
   label,
-  value,
+  target,
   tone,
   delta,
+  formatter,
+  spark,
+  sparkColor,
 }: {
   label: string;
-  value: string;
+  target: number;
   tone: 'good' | 'bad' | 'neutral';
   delta?: string;
+  formatter?: (n: number) => string;
+  spark?: number[];
+  sparkColor?: string;
 }) {
   const valueColor =
-    tone === 'good'
-      ? 'text-emerald-700'
-      : tone === 'bad'
-      ? 'text-red-600'
-      : 'text-slate-900';
+    tone === 'good' ? 'text-sage-deep' : tone === 'bad' ? 'text-bordeaux' : 'text-ink';
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-5">
-      <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+    <div className="bg-paper border border-cream-deep rounded-3xl p-6 card-lift">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-muted mb-2">
         {label}
       </div>
-      <div className={`text-3xl font-bold tabular-nums ${valueColor}`}>{value}</div>
-      {delta && <div className="text-xs text-slate-500 mt-1">{delta}</div>}
+      <div className="flex items-end justify-between gap-3">
+        <div className={`font-display text-5xl leading-none ${valueColor}`}>
+          <AnimatedNumber target={target} formatter={formatter} />
+        </div>
+        {spark && (
+          <Sparkline
+            data={spark}
+            color={sparkColor ?? '#0A1A3B'}
+            width={72}
+            height={28}
+            className="opacity-90 shrink-0"
+          />
+        )}
+      </div>
+      {delta && <div className="text-xs text-ink-muted mt-2">{delta}</div>}
     </div>
   );
 }

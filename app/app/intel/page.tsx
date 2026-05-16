@@ -7,23 +7,24 @@ import {
   Globe,
 } from 'lucide-react';
 import { getTopScammers, getTopSignatures } from '@/lib/queries';
+import AnimatedNumber from '@/components/AnimatedNumber';
 
 export const dynamic = 'force-dynamic';
 
 const CATEGORY_COLOR: Record<string, string> = {
-  bank: 'bg-red-100 text-red-700 border-red-200',
-  family: 'bg-rose-100 text-rose-700 border-rose-200',
-  romance: 'bg-pink-100 text-pink-700 border-pink-200',
-  irs: 'bg-orange-100 text-orange-700 border-orange-200',
-  medicare: 'bg-amber-100 text-amber-700 border-amber-200',
-  package: 'bg-purple-100 text-purple-700 border-purple-200',
+  bank: 'bg-bordeaux-soft text-bordeaux border-bordeaux/20',
+  family: 'bg-coral-soft text-coral-deep border-coral/30',
+  romance: 'bg-coral-soft text-coral-deep border-coral/30',
+  irs: 'bg-gold-soft text-coral-deep border-gold/30',
+  medicare: 'bg-gold-soft text-coral-deep border-gold/30',
+  package: 'bg-bordeaux-soft text-bordeaux border-bordeaux/20',
 };
 
 function CategoryPill({ value }: { value: string }) {
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
-        CATEGORY_COLOR[value] ?? 'bg-slate-100 text-slate-700 border-slate-200'
+      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-[0.15em] border ${
+        CATEGORY_COLOR[value] ?? 'bg-cream-deep text-ink-muted border-cream-deep'
       }`}
     >
       {value}
@@ -35,15 +36,30 @@ function formatDateShort(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function ConfidenceBar({ value }: { value: number }) {
+function ConfidenceDial({ value }: { value: number }) {
   const pct = Math.round(value * 100);
-  const color = value >= 0.9 ? 'bg-red-600' : value >= 0.75 ? 'bg-amber-500' : 'bg-emerald-600';
+  const radius = 18;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (pct / 100) * circumference;
+  const color = value >= 0.9 ? '#9B2C2C' : value >= 0.75 ? '#E07856' : '#7FA486';
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-        <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-xs font-bold tabular-nums text-slate-600">{pct}%</span>
+      <svg width="44" height="44" viewBox="0 0 44 44" className="-rotate-90">
+        <circle cx="22" cy="22" r={radius} fill="none" stroke="#EFE6D2" strokeWidth="4" />
+        <circle
+          cx="22"
+          cy="22"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="4"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+        />
+      </svg>
+      <span className="text-xs font-bold numerals text-ink">{pct}%</span>
     </div>
   );
 }
@@ -61,111 +77,111 @@ export default async function IntelPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-xs font-semibold uppercase tracking-wider mb-3">
-          <Globe className="w-3.5 h-3.5" />
+      <div className="animate-fade-up">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cream-soft text-ink-soft border border-cream-deep text-[11px] font-semibold uppercase tracking-[0.18em] mb-4">
+          <Globe className="w-3.5 h-3.5" strokeWidth={1.8} />
           Network intelligence
         </div>
-        <h1 className="text-3xl font-bold text-slate-900 leading-tight max-w-3xl">
-          Every block teaches SafeCall. This is the threat library it&apos;s built.
+        <h1 className="font-display text-4xl lg:text-5xl text-ink leading-[1.05] max-w-3xl">
+          Every block teaches SafeCall. <span className="text-ink-muted italic">This is the threat library it&apos;s built.</span>
         </h1>
-        <p className="text-sm text-slate-500 mt-2 max-w-2xl">
-          When a new number calls Mom, SafeCall checks here first. The more
-          families on SafeCall, the smarter this layer gets.
+        <p className="text-base text-ink-soft mt-3 max-w-2xl leading-relaxed">
+          When a new number calls Mom, SafeCall checks here first. The more families on
+          SafeCall, the smarter this layer gets.
         </p>
       </div>
 
       {/* Network stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat
-          icon={<ShieldAlert className="w-4 h-4" />}
+          icon={<ShieldAlert className="w-4 h-4" strokeWidth={1.8} />}
           label="Known scammer numbers"
-          value={scammers.length.toString()}
+          target={scammers.length}
           delta={`${highConfidenceScammers} high-confidence`}
           tone="bad"
         />
         <Stat
-          icon={<Activity className="w-4 h-4" />}
+          icon={<Activity className="w-4 h-4" strokeWidth={1.8} />}
           label="Reports across network"
-          value={totalReports.toLocaleString('en-US')}
+          target={totalReports}
           delta="Last 30 days"
         />
         <Stat
-          icon={<Users className="w-4 h-4" />}
+          icon={<Users className="w-4 h-4" strokeWidth={1.8} />}
           label="Victims protected"
-          value={totalVictims.toLocaleString('en-US')}
+          target={totalVictims}
           delta="Across all families"
           tone="good"
         />
         <Stat
-          icon={<MessageSquareWarning className="w-4 h-4" />}
+          icon={<MessageSquareWarning className="w-4 h-4" strokeWidth={1.8} />}
           label="Pattern matches"
-          value={totalSignatureMatches.toLocaleString('en-US')}
+          target={totalSignatureMatches}
           delta={`${signatures.length} unique patterns`}
         />
       </div>
 
       {/* Top scammers table */}
-      <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+      <section className="bg-paper border border-cream-deep rounded-3xl overflow-hidden card-lift">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-cream-deep">
           <div>
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            <h2 className="text-[11px] font-bold text-ink uppercase tracking-[0.18em]">
               Top scammer numbers
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-ink-muted mt-0.5">
               Ranked by reports across the entire SafeCall network.
             </p>
           </div>
-          <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500">
-            <TrendingUp className="w-3 h-3 text-red-600" />
+          <span className="hidden sm:inline-flex items-center gap-1 text-xs text-ink-muted">
+            <TrendingUp className="w-3 h-3 text-bordeaux" strokeWidth={2} />
             Updating live
           </span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10px] font-bold uppercase tracking-widest text-slate-500 border-b border-slate-100">
-                <th className="px-5 py-3 text-left">#</th>
-                <th className="px-5 py-3 text-left">Number</th>
-                <th className="px-5 py-3 text-left">Category</th>
-                <th className="px-5 py-3 text-right">Reports</th>
-                <th className="px-5 py-3 text-right">Victims</th>
-                <th className="px-5 py-3 text-left">Confidence</th>
-                <th className="px-5 py-3 text-right hidden lg:table-cell">Last seen</th>
+              <tr className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink-muted border-b border-cream-deep bg-cream-soft/40">
+                <th className="px-6 py-3 text-left">#</th>
+                <th className="px-6 py-3 text-left">Number</th>
+                <th className="px-6 py-3 text-left">Category</th>
+                <th className="px-6 py-3 text-right">Reports</th>
+                <th className="px-6 py-3 text-right">Victims</th>
+                <th className="px-6 py-3 text-left">Confidence</th>
+                <th className="px-6 py-3 text-right hidden lg:table-cell">Last seen</th>
               </tr>
             </thead>
             <tbody>
               {scammers.map((s, i) => (
                 <tr
                   key={s.id}
-                  className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                  className="border-b border-cream-deep last:border-0 hover:bg-cream-soft transition-colors"
                 >
-                  <td className="px-5 py-3 text-xs font-bold text-slate-400 tabular-nums">
+                  <td className="px-6 py-3 text-xs font-bold text-ink-muted numerals">
                     {String(i + 1).padStart(2, '0')}
                   </td>
-                  <td className="px-5 py-3 font-mono font-semibold text-slate-900 tabular-nums whitespace-nowrap">
+                  <td className="px-6 py-3 font-display text-ink numerals whitespace-nowrap">
                     {s.phone}
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-6 py-3">
                     <CategoryPill value={s.primary_category} />
                   </td>
-                  <td className="px-5 py-3 text-right font-bold tabular-nums text-red-700">
+                  <td className="px-6 py-3 text-right font-bold numerals text-bordeaux">
                     {s.reports_count}
                   </td>
-                  <td className="px-5 py-3 text-right tabular-nums text-slate-700">
+                  <td className="px-6 py-3 text-right numerals text-ink-soft">
                     {s.victims_count}
                   </td>
-                  <td className="px-5 py-3">
-                    <ConfidenceBar value={Number(s.confidence)} />
+                  <td className="px-6 py-3">
+                    <ConfidenceDial value={Number(s.confidence)} />
                   </td>
-                  <td className="px-5 py-3 text-right text-xs text-slate-500 hidden lg:table-cell">
+                  <td className="px-6 py-3 text-right text-xs text-ink-muted hidden lg:table-cell">
                     {formatDateShort(s.last_seen_at)}
                   </td>
                 </tr>
               ))}
               {scammers.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-sm text-slate-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-ink-muted">
                     No scammer numbers tracked yet.
                   </td>
                 </tr>
@@ -176,64 +192,60 @@ export default async function IntelPage() {
       </section>
 
       {/* Top signatures */}
-      <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+      <section className="bg-paper border border-cream-deep rounded-3xl overflow-hidden card-lift">
+        <div className="px-6 py-4 border-b border-cream-deep">
+          <h2 className="text-[11px] font-bold text-ink uppercase tracking-[0.18em]">
             Most common scam patterns
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Recurring text fingerprints SafeCall recognizes across messages and
-            calls. New scams matching these are blocked instantly.
+          <p className="text-xs text-ink-muted mt-0.5">
+            Recurring text fingerprints SafeCall recognizes across messages and calls.
           </p>
         </div>
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-cream-deep">
           {signatures.map((s, i) => (
-            <li key={s.id} className="px-5 py-4 flex items-start gap-4">
-              <span className="text-xs font-bold text-slate-400 tabular-nums shrink-0 pt-0.5 w-6">
+            <li key={s.id} className="px-6 py-5 flex items-start gap-4 hover:bg-cream-soft transition-colors">
+              <span className="text-xs font-bold text-ink-muted numerals shrink-0 pt-1 w-6">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <CategoryPill value={s.category} />
-                  <span className="font-mono text-xs text-slate-500">
-                    {s.fingerprint}
-                  </span>
+                  <span className="font-mono text-[11px] text-ink-muted">{s.fingerprint}</span>
                 </div>
-                <p className="text-sm text-slate-700 leading-snug italic">
+                <p className="text-sm text-ink leading-snug italic font-display">
                   &ldquo;{s.example_text}&rdquo;
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-2xl font-bold tabular-nums text-red-600 leading-none">
+                <div className="font-display text-3xl numerals text-bordeaux leading-none">
                   {s.matches_count}
                 </div>
-                <div className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mt-1">
+                <div className="text-[10px] text-ink-muted uppercase font-semibold tracking-[0.15em] mt-1">
                   matches
                 </div>
               </div>
             </li>
           ))}
-          {signatures.length === 0 && (
-            <li className="px-5 py-12 text-center text-sm text-slate-500">
-              No patterns tracked yet.
-            </li>
-          )}
         </ul>
       </section>
 
-      <div className="bg-gradient-to-br from-blue-900 to-purple-800 text-white rounded-2xl p-6 lg:p-8">
-        <div className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-2">
-          Network effect
+      <div className="relative bg-ink text-cream rounded-3xl p-8 lg:p-10 overflow-hidden card-lift">
+        <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-coral/20 blur-3xl" />
+        <div className="absolute -left-16 bottom-0 w-56 h-56 rounded-full bg-sage/20 blur-3xl" />
+        <div className="relative">
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-cream/70 mb-3">
+            Network effect
+          </div>
+          <h3 className="font-display text-3xl lg:text-4xl leading-tight mb-3">
+            Every block makes the next family safer.
+          </h3>
+          <p className="text-cream/80 leading-relaxed max-w-2xl">
+            When Margaret&apos;s SafeCall caught a fake bank caller this morning, the
+            number was added to this list within seconds. Next time that scammer dials
+            any of the {totalVictims.toLocaleString('en-US')}+ protected seniors on our
+            network, we already know.
+          </p>
         </div>
-        <h3 className="text-xl lg:text-2xl font-bold leading-tight mb-2">
-          Every block makes the next family safer.
-        </h3>
-        <p className="text-sm text-blue-100 leading-relaxed max-w-2xl">
-          When Margaret&apos;s SafeCall caught a fake bank caller this morning, the
-          number was added to this list within seconds. Next time that scammer
-          dials any of the {totalVictims.toLocaleString('en-US')}+ protected seniors on
-          our network, we already know.
-        </p>
       </div>
     </div>
   );
@@ -242,30 +254,28 @@ export default async function IntelPage() {
 function Stat({
   icon,
   label,
-  value,
+  target,
   delta,
   tone = 'neutral',
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  target: number;
   delta?: string;
   tone?: 'good' | 'bad' | 'neutral';
 }) {
   const valueColor =
-    tone === 'good'
-      ? 'text-emerald-700'
-      : tone === 'bad'
-      ? 'text-red-600'
-      : 'text-slate-900';
+    tone === 'good' ? 'text-sage-deep' : tone === 'bad' ? 'text-bordeaux' : 'text-ink';
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-5">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+    <div className="bg-paper border border-cream-deep rounded-3xl p-6 card-lift">
+      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-muted mb-3">
         {icon}
         {label}
       </div>
-      <div className={`text-3xl font-bold tabular-nums ${valueColor}`}>{value}</div>
-      {delta && <div className="text-xs text-slate-500 mt-1">{delta}</div>}
+      <div className={`font-display text-4xl leading-none ${valueColor}`}>
+        <AnimatedNumber target={target} />
+      </div>
+      {delta && <div className="text-xs text-ink-muted mt-2">{delta}</div>}
     </div>
   );
 }

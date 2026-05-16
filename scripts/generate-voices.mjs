@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pre-generate SafeCall voice lines via ElevenLabs and save to public/voice/.
+// Pre-generate all voice lines via ElevenLabs and save to public/voice/.
 // Run: node scripts/generate-voices.mjs  (or with --force to regenerate existing).
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
@@ -20,35 +20,79 @@ if (existsSync(envPath)) {
 }
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
-const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
-
 if (!API_KEY) {
   console.error('Missing ELEVENLABS_API_KEY in .env.local');
   process.exit(1);
 }
 
-// Short, urgent-but-calm. These are what SafeCall actually says out loud.
-const LINES = {
-  fake_son:
-    'Wait. This may not be Peter. Please call his real number before sending anything.',
-  fake_bank:
-    'Please hang up. Real banks never ask for this over the phone.',
+// Sarah — warm calm US female. Used for the SafeCall warnings.
+const SARAH = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
+// Brian — neutral US male. Used for the fake-bank scammer in the demo.
+const BRIAN = 'nPczCjzI2devNBz1zQrb';
+
+const SAFECALL_SETTINGS = {
+  stability: 0.55,
+  similarity_boost: 0.75,
+  style: 0.15,
+  use_speaker_boost: true,
 };
+
+const SCAMMER_SETTINGS = {
+  stability: 0.4,
+  similarity_boost: 0.85,
+  style: 0.35, // a bit more urgency / theatricality
+  use_speaker_boost: true,
+};
+
+const LINES = [
+  // SafeCall warnings (Sarah)
+  {
+    out: 'fake_son.mp3',
+    voice: SARAH,
+    settings: SAFECALL_SETTINGS,
+    text: 'Wait. This may not be Peter. Please call his real number before sending anything.',
+  },
+  {
+    out: 'fake_bank.mp3',
+    voice: SARAH,
+    settings: SAFECALL_SETTINGS,
+    text: 'Please hang up. Real banks never ask for this over the phone.',
+  },
+  // Fake-bank scammer lines (Brian) — synced to captions in CallView
+  {
+    out: 'scammer_fake_bank_1.mp3',
+    voice: BRIAN,
+    settings: SCAMMER_SETTINGS,
+    text: "Hello ma'am, this is Daniel from Bank of America fraud department.",
+  },
+  {
+    out: 'scammer_fake_bank_2.mp3',
+    voice: BRIAN,
+    settings: SCAMMER_SETTINGS,
+    text: 'We detected a $2,300 suspicious charge on your card a moment ago.',
+  },
+  {
+    out: 'scammer_fake_bank_3.mp3',
+    voice: BRIAN,
+    settings: SCAMMER_SETTINGS,
+    text: 'To cancel it, I just need the last four digits of your card. Quickly please.',
+  },
+];
 
 const OUT_DIR = resolve(__dirname, '..', 'public', 'voice');
 mkdirSync(OUT_DIR, { recursive: true });
 
 const force = process.argv.includes('--force');
 
-for (const [id, text] of Object.entries(LINES)) {
-  const out = resolve(OUT_DIR, `${id}.mp3`);
+for (const line of LINES) {
+  const out = resolve(OUT_DIR, line.out);
   if (existsSync(out) && !force) {
-    console.log(`✔ ${id}.mp3 already exists (--force to regenerate)`);
+    console.log(`✔ ${line.out} already exists (--force to regenerate)`);
     continue;
   }
-  console.log(`→ Generating ${id}.mp3 …`);
+  console.log(`→ Generating ${line.out} …`);
   const res = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+    `https://api.elevenlabs.io/v1/text-to-speech/${line.voice}`,
     {
       method: 'POST',
       headers: {
@@ -57,20 +101,15 @@ for (const [id, text] of Object.entries(LINES)) {
         accept: 'audio/mpeg',
       },
       body: JSON.stringify({
-        text,
+        text: line.text,
         model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.55,
-          similarity_boost: 0.75,
-          style: 0.15,
-          use_speaker_boost: true,
-        },
+        voice_settings: line.settings,
       }),
     }
   );
   if (!res.ok) {
     const body = await res.text();
-    console.error(`✗ ${id} failed: ${res.status} ${body}`);
+    console.error(`✗ ${line.out} failed: ${res.status} ${body}`);
     process.exit(2);
   }
   const buf = Buffer.from(await res.arrayBuffer());

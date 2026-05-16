@@ -91,11 +91,12 @@ export const CATEGORY_LABEL: Record<ScamCategory, string> = {
   package: 'Package delivery',
 };
 
+// Palette aligned with the warm-intelligence design system.
 export const CATEGORY_COLOR: Record<ScamCategory, string> = {
-  bank: '#dc2626',
-  family: '#b91c1c',
-  romance: '#db2777',
-  irs: '#ea580c',
-  medicare: '#d97706',
-  package: '#7c3aed',
+  bank: '#9B2C2C',     // bordeaux
+  family: '#B8553A',   // coral-deep
+  romance: '#E07856',  // coral
+  irs: '#C8956D',      // gold
+  medicare: '#0A1A3B', // ink
+  package: '#4F7659',  // sage-deep
 };

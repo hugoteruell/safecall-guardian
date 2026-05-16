@@ -5,17 +5,17 @@ const config = {
   blocked: {
     label: 'Blocked',
     Icon: ShieldAlert,
-    pill: 'bg-red-50 text-red-700 border-red-200',
+    pill: 'bg-bordeaux-soft text-bordeaux border-bordeaux/20',
   },
   warned: {
     label: 'Warned',
     Icon: AlertTriangle,
-    pill: 'bg-amber-50 text-amber-700 border-amber-200',
+    pill: 'bg-gold-soft text-coral-deep border-gold/30',
   },
   safe: {
     label: 'Safe',
     Icon: ShieldCheck,
-    pill: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    pill: 'bg-sage-soft text-sage-deep border-sage/30',
   },
 };
 
@@ -26,7 +26,7 @@ export default function EventStatusBadge({ status }: { status: EventStatus }) {
     <span
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold border ${c.pill}`}
     >
-      <Icon className="w-3 h-3" />
+      <Icon className="w-3 h-3" strokeWidth={2} />
       {c.label}
     </span>
   );
