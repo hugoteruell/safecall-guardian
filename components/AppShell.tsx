@@ -15,12 +15,15 @@ import {
 import { CARETAKER, SENIOR } from '@/lib/userData';
 import Avatar from './Avatar';
 
-const navItems = [
+const mainNavItems = [
   { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/app/events', label: 'Events', icon: Bell },
   { href: '/app/family', label: 'Family', icon: Users },
-  { href: '/app/intel', label: 'Threat intel', icon: Globe },
   { href: '/app/settings', label: 'Settings', icon: Settings },
+];
+
+const adminNavItems = [
+  { href: '/app/intel', label: 'Threat intel', icon: Globe },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -60,25 +63,58 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const active =
-              href === '/app' ? pathname === '/app' : pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                  active
-                    ? 'bg-cream-deep text-ink'
-                    : 'text-ink-soft hover:bg-cream-deep/60 hover:text-ink'
-                }`}
-              >
-                <Icon className="w-4 h-4" strokeWidth={active ? 2.4 : 1.8} />
-                {label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-3 py-4 flex flex-col">
+          <div className="space-y-1">
+            {mainNavItems.map(({ href, label, icon: Icon }) => {
+              const active =
+                href === '/app' ? pathname === '/app' : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    active
+                      ? 'bg-cream-deep text-ink'
+                      : 'text-ink-soft hover:bg-cream-deep/60 hover:text-ink'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" strokeWidth={active ? 2.4 : 1.8} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Admin section — internal SafeCall ops view */}
+          <div className="mt-6 pt-4 border-t border-cream-deep">
+            <div className="px-3 mb-2 flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink-muted">
+                Admin
+              </span>
+              <span className="text-[9px] font-semibold uppercase tracking-[0.15em] px-1.5 py-0.5 rounded bg-ink text-cream">
+                Internal
+              </span>
+            </div>
+            <div className="space-y-1">
+              {adminNavItems.map(({ href, label, icon: Icon }) => {
+                const active = pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      active
+                        ? 'bg-cream-deep text-ink'
+                        : 'text-ink-soft hover:bg-cream-deep/60 hover:text-ink'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" strokeWidth={active ? 2.4 : 1.8} />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </nav>
 
         {/* Footer */}
